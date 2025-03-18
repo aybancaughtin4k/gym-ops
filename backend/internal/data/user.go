@@ -44,7 +44,7 @@ func (m UserModel) GetUserByEmail(email string) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	err := m.dbpool.QueryRow(ctx, query, args).Scan(&user.ID, &user.Fullname, &user.Email, &user.Password)
+	err := m.dbpool.QueryRow(ctx, query, args).Scan(&user.ID, &user.Fullname, &user.Email, &user.Password.hash, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		switch {
 		case errors.Is(err, pgx.ErrNoRows):
@@ -68,7 +68,7 @@ func (m UserModel) GetUserByUsername(username string) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	err := m.dbpool.QueryRow(ctx, query, args).Scan(&user.ID, &user.Fullname, &user.Email, &user.Password)
+	err := m.dbpool.QueryRow(ctx, query, args).Scan(&user.ID, &user.Fullname, &user.Email, &user.Password.hash, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		switch {
 		case errors.Is(err, pgx.ErrNoRows):
