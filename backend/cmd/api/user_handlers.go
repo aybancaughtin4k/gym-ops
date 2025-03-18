@@ -8,6 +8,59 @@ import (
 	"github.com/aybancaughtin4k/gymops/backend/internal/validator"
 )
 
+func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	v := validator.New()
+
+	data.ValidateEmail(v, input.Email)
+	data.ValidatePasswordPlainText(v, input.Password)
+
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	user, err := app.models.Users.GetUserByEmail(input.Email)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	matches, err := user.Password.Matches(input.Password)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	if !matches {
+		app.invalidAuthResponse(w, r)
+		return
+	}
+
+	token, err := data.GenerateToken(app.config.authTokenKey, user.ID)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	app.writeJSON(w, http.StatusOK, envelope{"token": token}, nil)
+}
+
 func (app *application) registerHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Fullname string `json:"fullname"`

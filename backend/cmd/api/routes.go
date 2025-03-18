@@ -23,6 +23,7 @@ func (app *application) routes() http.Handler {
 	r.Get("/api/v1/healthcheck", app.healthCheckHandler)
 
 	r.Post("/api/v1/users/register", app.registerHandler)
+	r.Post("/api/v1/users/login", app.loginHandler)
 
 	return r
 }

@@ -13,9 +13,10 @@ import (
 )
 
 type config struct {
-	port int
-	env  string
-	dsn  string
+	port         int
+	env          string
+	dsn          string
+	authTokenKey string
 }
 
 type application struct {
@@ -31,6 +32,7 @@ func main() {
 	flag.IntVar(&cfg.port, "port", 4000, "The port of server that will use")
 	flag.StringVar(&cfg.env, "environment", "development", "Server environment (production|development)")
 	flag.StringVar(&cfg.dsn, "dsn", os.Getenv("GOOSE_DBSTRING"), "Database dsn")
+	flag.StringVar(&cfg.authTokenKey, "token-key", os.Getenv("AUTH_TOKEN_KEY"), "Authentication token key secret")
 
 	flag.Parse()
 
@@ -61,7 +63,7 @@ func main() {
 }
 
 func initDB(cfg config) (*pgxpool.Pool, error) {
-	dbpool, err := pgxpool.New(context.Background(), os.Getenv("GOOSE_DBSTRING"))
+	dbpool, err := pgxpool.New(context.Background(), cfg.dsn)
 	if err != nil {
 		return nil, err
 	}
